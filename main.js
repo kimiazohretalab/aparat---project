@@ -1,5 +1,5 @@
-const modal = document.getElementById("myModal");
-const span = document.getElementsByClassName("close")[0];
+const modal = document.getElementById("videoModal");
+const span = document.getElementById("close");
 const modalIframe = document.getElementById("modalIframe");
 
 function modalHandler(element, videoUrl, username) {
@@ -27,6 +27,8 @@ window.onclick = function (event) {
     modal.style.display = "none";
   }
 };
+// let videos = JSON.parse(localStorage.getItem('videoCounts'));
+let videos = [];
 function SearchVideos() {
   const inputVal = document.getElementById("search").value;
   const videoPart = document.getElementById("videoPart");
@@ -41,9 +43,6 @@ function SearchVideos() {
     )
     .then((res) => {
       console.log(res);
-      //
-      let videos = JSON.parse(localStorage.getItem('videoCounts'));
-      //
       for (let i = 0; i <= 5; i++) {
         const videoPart = document.getElementById("videoPart");
         const parentDiv = document.createElement("div");
@@ -57,14 +56,12 @@ function SearchVideos() {
         iframe.setAttribute("id", `innerBox${i}`);
         let videoUrl = res.data.videobysearch[i].frame;
         let username = res.data.videobysearch[i].username;
-        let videoId = res.data.videobysearch[i].id;
+        let videoId = res.data.videobysearch[i].uid;
         iframe.setAttribute("src", videoUrl);
         parag.innerText = username;
         parentDiv.appendChild(iframe);
         videoPart.insertAdjacentElement("afterbegin", parentDiv);
-        //
         iframe.setAttribute("data-id", videoId);
-        //
         iframe.addEventListener("mouseover", () => {
           document.getElementById(`innerBox${i}`).style.display = "none";
         });
@@ -75,25 +72,30 @@ function SearchVideos() {
           const thisElement = document.getElementById(`innerBox${i}`);
           modalHandler(thisElement, videoUrl, username);
         });
-
-        // parentDiv.addEventListener("click", () => {
-        //   const thisElement = document.getElementById(`innerBox${i}`);
-        //   const dataId = thisElement.getAttribute("data-id");
-          const result = videos.filter((obj) => (obj.id === dataId));
-        //   const isDataExist = result.length > 0 ? true : false;
-        //   console.log(isDataExist); 
-        //   console.log(videos);
-        //   // if (isDataExist) {
-        //   //   // videos.filter((el) => (el.counter = el.counter + 1))
-        //   // } else {
-        //   //   videos.push({id:dataId ,counter:1})
-        //   // }
-        //   const videoCounts = localStorage.getItem("videoCounts");
-        //   if (!videoCounts) {
-        //     localStorage.setItem("videoCounts", JSON.stringify(result));
-        //   }
-        // });
+        
+        videos.push({videoId ,counter:0});
+        
+        parentDiv.addEventListener("click", () => {
+          const thisElement = document.getElementById(`innerBox${i}`);
+          const dataId = thisElement.getAttribute("data-id");
+          const result = videos.filter((obj) =>(obj.videoId == dataId));
+          const isDataExist = result.length > 0 ? true : false;
+          const index = videos.findIndex((obj) =>(obj.videoId == dataId) )
+          if (isDataExist) {
+            videos[index].counter = videos[index].counter + 1 ;
+          } else {
+            videos.push({videoId:dataId ,counter:1})
+          }
+          const videoCounts = localStorage.getItem("videoCounts");
+          if (!videoCounts) {
+            localStorage.setItem("videoCounts", JSON.stringify(videos));
+          }
+          localStorage.setItem("videoCounts", JSON.stringify(videos));
+          const visit = document.getElementById("visit");
+          visit.innerHTML= videos[index].counter ;
+        });
       }
+      console.log(videos);
     });
 }
 var skip = 0;
