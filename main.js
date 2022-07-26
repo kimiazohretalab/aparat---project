@@ -27,8 +27,8 @@ window.onclick = function (event) {
     modal.style.display = "none";
   }
 };
-// let videos = JSON.parse(localStorage.getItem('videoCounts'));
-let videos = [];
+let videos = JSON.parse(localStorage.getItem('videoCounts'));
+// let videos = [];
 function SearchVideos() {
   const inputVal = document.getElementById("search").value;
   const videoPart = document.getElementById("videoPart");
