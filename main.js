@@ -1,8 +1,8 @@
 const modal = document.getElementById("videoModal");
-const span = document.getElementById("close");
+const closeBtn = document.getElementById("close");
 const modalIframe = document.getElementById("modalIframe");
 
-function modalHandler(element, videoUrl, username) {
+function modalHandler(videoUrl, username) {
   modal.style.display = "block";
   const URL = videoUrl;
   const user = username;
@@ -12,14 +12,14 @@ function modalHandler(element, videoUrl, username) {
     .get(`https://www.aparat.com/etc/api/profile/username/${user}`)
     .then((res) => {
       const profileName = res.data.profile.name;
-      const profilepicture = res.data.profile.pic_m;
+      const profilePicture = res.data.profile.pic_m;
       const text = document.getElementById("profileName");
       const img = document.getElementById("profilePic");
       text.innerText = profileName;
-      img.setAttribute("src", profilepicture);
+      img.setAttribute("src", profilePicture);
     });
 }
-span.onclick = function () {
+closeBtn.onclick = function () {
   modal.style.display = "none";
 };
 window.onclick = function (event) {
@@ -28,7 +28,6 @@ window.onclick = function (event) {
   }
 };
 let videos = JSON.parse(localStorage.getItem('videoCounts'));
-// let videos = [];
 function SearchVideos() {
   const inputVal = document.getElementById("search").value;
   const videoPart = document.getElementById("videoPart");
@@ -69,8 +68,7 @@ function SearchVideos() {
           document.getElementById(`innerBox${i}`).style.display = "block";
         });
         parentDiv.addEventListener("click", () => {
-          const thisElement = document.getElementById(`innerBox${i}`);
-          modalHandler(thisElement, videoUrl, username);
+          modalHandler(videoUrl, username);
         });
         
         videos.push({videoId ,counter:0});
@@ -87,6 +85,7 @@ function SearchVideos() {
             videos.push({videoId:dataId ,counter:1})
           }
           const videoCounts = localStorage.getItem("videoCounts");
+          console.log(videoCounts);
           if (!videoCounts) {
             localStorage.setItem("videoCounts", JSON.stringify(videos));
           }
@@ -95,7 +94,6 @@ function SearchVideos() {
           visit.innerHTML= videos[index].counter ;
         });
       }
-      console.log(videos);
     });
 }
 var skip = 0;
