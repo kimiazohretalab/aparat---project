@@ -75,6 +75,7 @@ function mouseOverHandler(element, videoId) {
     document.getElementById(`innerBox${videoId}`).style.display = "none";
   });
 }
+
 function mouseLeaveHandler(element, videoId) {
   element.addEventListener("mouseleave", () => {
     document.getElementById(`innerBox${videoId}`).style.display = "block";
@@ -115,12 +116,6 @@ function videoViewHandler(video) {
     videoViews[index].count = videoViews[index].count + 1;
   }
   localStorage.setItem('count',JSON.stringify(videoViews))
-}
-document.addEventListener('DOMContentLoaded',saveCount);
-function saveCount(){
-  const videoViews = localStorage.getItem('count') ? JSON.parse(localStorage.getItem('count')) : []; 
-  videoViews.forEach(view => {modalHandler(view.id,view.count,false)}
-    )
 }
 function showVisit(video){
   const visitHolder = document.getElementById("visit");
