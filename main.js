@@ -2,23 +2,6 @@ const modal = document.getElementById("videoModal");
 const closeBtn = document.getElementById("close");
 const modalIframe = document.getElementById("modalIframe");
 
-function modalHandler(videoUrl, username) {
-  modal.style.display = "block";
-  const URL = videoUrl;
-  const user = username;
-  modalIframe.setAttribute("src", URL);
-  //
-  axios
-    .get(`https://www.aparat.com/etc/api/profile/username/${user}`)
-    .then((res) => {
-      const profileName = res.data.profile.name;
-      const profilePicture = res.data.profile.pic_m;
-      const text = document.getElementById("profileName");
-      const img = document.getElementById("profilePic");
-      text.innerText = profileName;
-      img.setAttribute("src", profilePicture);
-    });
-}
 closeBtn.onclick = function () {
   modal.style.display = "none";
 };
@@ -27,11 +10,24 @@ window.onclick = function (event) {
     modal.style.display = "none";
   }
 };
-let videos = JSON.parse(localStorage.getItem('videoCounts'));
-function SearchVideos() {
+
+let skip = 0;
+let currentPage = 1;
+function nextPageHandler() {
+  skip = skip + 6;
+  currentPage = currentPage + 1;
+  getVideosHandler();
+}
+function prevPageHandler() {
+  skip = skip - 6;
+  currentPage = currentPage - 1;
+  getVideosHandler();
+}
+
+function getVideosHandler() {
   const inputVal = document.getElementById("search").value;
   const videoPart = document.getElementById("videoPart");
-  var child = videoPart.lastElementChild;
+  let child = videoPart.lastElementChild;
   while (child) {
     videoPart.removeChild(child);
     child = videoPart.lastElementChild;
@@ -41,70 +37,94 @@ function SearchVideos() {
       `https://www.aparat.com/etc/api/videoBySearch/text/${inputVal}/perpage/6/curoffset/${skip}`
     )
     .then((res) => {
-      console.log(res);
-      for (let i = 0; i <= 5; i++) {
-        const videoPart = document.getElementById("videoPart");
-        const parentDiv = document.createElement("div");
-        parentDiv.setAttribute("class", "box");
-        parentDiv.setAttribute("id", `box${i}`);
-        const parag = document.createElement("p");
-        parag.setAttribute("id", `p${i}`);
-        parentDiv.appendChild(parag);
-        var iframe = document.createElement("iframe");
-        iframe.setAttribute("class", "inner-box");
-        iframe.setAttribute("id", `innerBox${i}`);
-        let videoUrl = res.data.videobysearch[i].frame;
-        let username = res.data.videobysearch[i].username;
-        let videoId = res.data.videobysearch[i].uid;
-        iframe.setAttribute("src", videoUrl);
-        parag.innerText = username;
-        parentDiv.appendChild(iframe);
-        videoPart.insertAdjacentElement("afterbegin", parentDiv);
-        iframe.setAttribute("data-id", videoId);
-        iframe.addEventListener("mouseover", () => {
-          document.getElementById(`innerBox${i}`).style.display = "none";
-        });
-        parentDiv.addEventListener("mouseleave", () => {
-          document.getElementById(`innerBox${i}`).style.display = "block";
-        });
-        parentDiv.addEventListener("click", () => {
-          modalHandler(videoUrl, username);
-        });
-        
-        videos.push({videoId ,counter:0});
-        
-        parentDiv.addEventListener("click", () => {
-          const thisElement = document.getElementById(`innerBox${i}`);
-          const dataId = thisElement.getAttribute("data-id");
-          const result = videos.filter((obj) =>(obj.videoId == dataId));
-          const isDataExist = result.length > 0 ? true : false;
-          const index = videos.findIndex((obj) =>(obj.videoId == dataId) )
-          if (isDataExist) {
-            videos[index].counter = videos[index].counter + 1 ;
-          } else {
-            videos.push({videoId:dataId ,counter:1})
-          }
-          const videoCounts = localStorage.getItem("videoCounts");
-          console.log(videoCounts);
-          if (!videoCounts) {
-            localStorage.setItem("videoCounts", JSON.stringify(videos));
-          }
-          localStorage.setItem("videoCounts", JSON.stringify(videos));
-          const visit = document.getElementById("visit");
-          visit.innerHTML= videos[index].counter ;
-        });
-      }
+      const videos = res.data.videobysearch;
+      showVideosHandler(videos);
     });
 }
-var skip = 0;
-var currentPage = 1;
-function nextPageHandler() {
-  skip = skip + 6;
-  currentPage = currentPage + 1;
-  SearchVideos();
+
+function showVideosHandler(videos) {
+  const videoPart = document.getElementById("videoPart");
+  videos.map((video) => {
+    const parentDiv = document.createElement("div");
+    parentDiv.setAttribute("class", "box");
+    parentDiv.setAttribute("id", `box${video.uid}`);
+    const publisher = document.createElement("p");
+    publisher.setAttribute("id", `p${video.uid}`);
+    parentDiv.appendChild(publisher);
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("class", "inner-box");
+    iframe.setAttribute("id", `innerBox${video.uid}`);
+    const videoModel = {
+      url: video.frame,
+      username: video.username,
+      uid: video.uid,
+    };
+    iframe.setAttribute("src", videoModel.url);
+    iframe.setAttribute("data-id", videoModel.uid);
+    publisher.innerText = videoModel.username;
+    parentDiv.appendChild(iframe);
+    videoPart.insertAdjacentElement("afterbegin", parentDiv);
+    mouseOverHandler(iframe, videoModel.uid);
+    mouseLeaveHandler(parentDiv, videoModel.uid);
+    modalHandler(parentDiv, videoModel);
+  });
 }
-function prevPageHandler() {
-  skip = skip - 6;
-  currentPage = currentPage - 1;
-  SearchVideos();
+
+function mouseOverHandler(element, videoId) {
+  element.addEventListener("mouseover", () => {
+    document.getElementById(`innerBox${videoId}`).style.display = "none";
+  });
+}
+function mouseLeaveHandler(element, videoId) {
+  element.addEventListener("mouseleave", () => {
+    document.getElementById(`innerBox${videoId}`).style.display = "block";
+  });
+}
+
+function modalHandler(element, video, isSave = true) {
+  element.addEventListener("click", () => {
+    modal.style.display = "block";
+    modalIframe.setAttribute("src", video.url);
+    axios
+      .get(`https://www.aparat.com/etc/api/profile/username/${video.username}`)
+      .then((res) => {
+        const profileName = res.data.profile.name;
+        const profilePicture = res.data.profile.pic_m;
+        const text = document.getElementById("profileName");
+        const img = document.getElementById("profilePic");
+        text.innerText = profileName;
+        img.setAttribute("src", profilePicture);
+      });
+    if (isSave) videoViewHandler(video);
+    showVisit(video);
+  });
+}
+function videoViewHandler(video) {
+  const videoViews = localStorage.getItem('count') ? JSON.parse(localStorage.getItem('count')) : []; 
+  const playedVideo = {
+    id: video.uid,
+    count: 1,
+  };
+  const doseVideoExist = videoViews.some((view) => view.id === video.uid);
+  const index = videoViews.findIndex(
+    (videoIndex) => videoIndex.id === video.uid
+  );
+  if (!doseVideoExist) {
+    videoViews.push(playedVideo);
+  } else {
+    videoViews[index].count = videoViews[index].count + 1;
+  }
+  localStorage.setItem('count',JSON.stringify(videoViews))
+}
+document.addEventListener('DOMContentLoaded',saveCount);
+function saveCount(){
+  const videoViews = localStorage.getItem('count') ? JSON.parse(localStorage.getItem('count')) : []; 
+  videoViews.forEach(view => {modalHandler(view.id,view.count,false)}
+    )
+}
+function showVisit(video){
+  const visitHolder = document.getElementById("visit");
+  const indexOfElement = JSON.parse(localStorage.count);
+  const viewCounter = indexOfElement.find((el) => video.uid === el.id);
+  visitHolder.innerHTML = viewCounter.count;
 }
