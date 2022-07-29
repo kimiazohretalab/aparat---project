@@ -51,20 +51,21 @@ function showVideosHandler(videos) {
     const publisher = document.createElement("p");
     publisher.setAttribute("id", `p${video.uid}`);
     parentDiv.appendChild(publisher);
-    const iframe = document.createElement("iframe");
-    iframe.setAttribute("class", "inner-box");
-    iframe.setAttribute("id", `innerBox${video.uid}`);
+    const img = document.createElement("img");
+    img.setAttribute("class", "inner-box");
+    img.setAttribute("id", `innerBox${video.uid}`);
     const videoModel = {
+      poster:video.big_poster,
       url: video.frame,
       username: video.username,
       uid: video.uid,
     };
-    iframe.setAttribute("src", videoModel.url);
-    iframe.setAttribute("data-id", videoModel.uid);
+    img.setAttribute("src", videoModel.poster);
+    img.setAttribute("data-id", videoModel.uid);
     publisher.innerText = videoModel.username;
-    parentDiv.appendChild(iframe);
+    parentDiv.appendChild(img);
     videoPart.insertAdjacentElement("afterbegin", parentDiv);
-    mouseOverHandler(iframe, videoModel.uid);
+    mouseOverHandler(img, videoModel.uid);
     mouseLeaveHandler(parentDiv, videoModel.uid);
     modalHandler(parentDiv, videoModel);
   });
@@ -93,7 +94,7 @@ function modalHandler(element, video, isSave = true) {
         const profilePicture = res.data.profile.pic_m;
         const text = document.getElementById("profileName");
         const img = document.getElementById("profilePic");
-        text.innerText = profileName;
+        text.innerText = `username: ${profileName}`;
         img.setAttribute("src", profilePicture);
       });
     if (isSave) videoViewHandler(video);
@@ -121,5 +122,5 @@ function showVisit(video){
   const visitHolder = document.getElementById("visit");
   const indexOfElement = JSON.parse(localStorage.count);
   const viewCounter = indexOfElement.find((el) => video.uid === el.id);
-  visitHolder.innerHTML = viewCounter.count;
+  visitHolder.innerHTML = ` number of our visits: ${viewCounter.count}`;
 }
